@@ -22,7 +22,7 @@ function treinarAtributo(nivel, xp, ganho) {
 
 // Todos os atributos treináveis (reusa as listas do player.js)
 function todosAtributos() {
-  return FUTEBOL.concat(FISICO).concat(SOCIAL);
+  return FUTEBOL.concat(FISICO);
 }
 
 let _diaTreino = 1;

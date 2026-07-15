@@ -24,42 +24,83 @@ const SITUACOES = [
   { pt: "Um companheiro está correndo pela ponta...",    en: "A teammate is running on the wing...",  fav: "passar" },
 ];
 
-// Eventos de STAT (2 por atributo). Cada um usa 1 atributo; entram 2x no sorteio.
-// res: "gol" (marca), "assist" (gol do time + assistência), "recuperar" (rouba a bola).
+// Eventos de STAT AUTOMÁTICOS (só os de Chute/Passe/Drible, que o Gomes pediu pra não mexer).
+// res: "gol" (marca), "assist" (gol do time + assistência). rar = raridade (comum/raro/epico).
 const EVENTOS_STAT = [
   // DRIBLE
-  { id: "drible1", atr: "drible", buff: "driblar", res: "gol",
+  { id: "drible1", atr: "drible", buff: "driblar", res: "gol", rar: "comum",
     pt: "Você encara o marcador no 1x1...", en: "You take on your marker 1-on-1...",
     ok_pt: "Driblou e finalizou! GOL!", ok_en: "Dribbled past and scored! GOAL!", no_pt: "Perdeu a bola no drible.", no_en: "Lost the ball on the dribble." },
-  { id: "drible2", atr: "drible", buff: "driblar", res: "gol",
+  { id: "drible2", atr: "drible", buff: "driblar", res: "gol", rar: "epico",
     pt: "Você tenta um drible ousado na área...", en: "You try a bold dribble in the box...",
     ok_pt: "Que jogada! GOL!", ok_en: "What a move! GOAL!", no_pt: "A defesa cortou.", no_en: "The defense cut it out." },
   // CHUTE (shoot)
-  { id: "falta", atr: "chute", buff: "chutar", res: "gol",
+  { id: "falta", atr: "chute", buff: "chutar", res: "gol", rar: "comum",
     pt: "Falta perigosa! Você cobra...", en: "Dangerous free kick! You take it...",
     ok_pt: "GOOOL! No ângulo!", ok_en: "GOOOAL! Top corner!", no_pt: "Por cima do gol!", no_en: "Over the bar!" },
-  { id: "chutefora", atr: "chute", buff: "chutar", res: "gol",
+  { id: "chutefora", atr: "chute", buff: "chutar", res: "gol", rar: "raro",
     pt: "Chute de fora da área!", en: "Long shot from outside the box!",
     ok_pt: "MÍSSIL! GOL de longe!", ok_en: "ROCKET! Goal from distance!", no_pt: "Pra fora.", no_en: "Wide." },
   // PASSE (pass)
-  { id: "passe1", atr: "passe", buff: "passar", res: "assist",
+  { id: "passe1", atr: "passe", buff: "passar", res: "assist", rar: "comum",
     pt: "Lançamento longo pro companheiro...", en: "Long ball to your teammate...",
     ok_pt: "Passe perfeito, GOL do time! Assistência sua!", ok_en: "Perfect pass, GOAL! Your assist!", no_pt: "Interceptado.", no_en: "Intercepted." },
-  { id: "passe2", atr: "passe", buff: "passar", res: "assist",
+  { id: "passe2", atr: "passe", buff: "passar", res: "assist", rar: "raro",
     pt: "Tabela rápida na entrada da área...", en: "Quick one-two at the edge of the box...",
     ok_pt: "Tabelou e saiu o GOL! Assistência sua!", ok_en: "One-two and GOAL! Your assist!", no_pt: "O passe não chegou.", no_en: "The pass didn't get there." },
-  // FORÇA (strength) — o 2º de força; o duelo aéreo é separado (tem consequência)
-  { id: "ombro", atr: "forca", buff: null, res: "recuperar",
-    pt: "Ombro a ombro pela bola...", en: "Shoulder to shoulder for the ball...",
-    ok_pt: "Você protege e mantém a posse!", ok_en: "You hold them off and keep the ball!", no_pt: "Perdeu no corpo.", no_en: "Muscled off the ball." },
-  // AGILIDADE (others)
-  { id: "corrida", atr: "agilidade", buff: null, res: "recuperar",
-    pt: "Corrida pela bola! Chegue antes...", en: "A race for the ball! Get there first...",
-    ok_pt: "Você chega primeiro e domina!", ok_en: "You get there first and control it!", no_pt: "O adversário chegou antes.", no_en: "The opponent got there first." },
-  { id: "pique", atr: "agilidade", buff: null, res: "gol",
-    pt: "Pique em velocidade pela ponta...", en: "A sprint down the wing...",
-    ok_pt: "Deixou a defesa pra trás e marcou! GOL!", ok_en: "Left the defense behind and scored! GOAL!", no_pt: "A defesa alcançou.", no_en: "The defense caught up." },
 ];
+
+// Eventos COM ESCOLHA por atributo ("Você [situação], o que quer fazer?").
+// Cada opção usa um atributo (res: gol / assist / recuperar). Reusa o mostrarEscolha.
+const EVENTOS_ESCOLHA = [
+  // CONDUÇÃO DE BOLA
+  { id: "conducao1", rar: "comum", pt: "Você recebe cercado por dois marcadores. O que faz?", en: "You receive surrounded by two defenders. What do you do?", opcoes: [
+    { pt: "Proteger e girar (condução)", en: "Shield and turn (control)", atr: "conducao", res: "recuperar", ok_pt: "Você protege com categoria e mantém a bola!", ok_en: "You shield it with class and keep the ball!", no_pt: "Perdeu no aperto.", no_en: "Lost it under pressure." },
+    { pt: "Arriscar o passe", en: "Risk the pass", atr: "passe", buff: "passar", res: "assist", ok_pt: "Passe entre as pernas — GOL! Assistência!", ok_en: "Pass through the legs — GOAL! Assist!", no_pt: "Interceptado.", no_en: "Intercepted." },
+    { pt: "Sair driblando", en: "Dribble out", atr: "drible", buff: "driblar", res: "gol", ok_pt: "Driblou os dois e marcou! GOL!", ok_en: "Beat both and scored! GOAL!", no_pt: "Travado.", no_en: "Blocked." },
+  ] },
+  { id: "conducao2", rar: "raro", pt: "A bola chega em velocidade. Você domina...", en: "The ball comes in fast. You control it...", opcoes: [
+    { pt: "Domínio orientado pro gol (condução)", en: "First touch towards goal (control)", atr: "conducao", res: "gol", ok_pt: "Domínio perfeito e finalização! GOL!", ok_en: "Perfect touch and finish! GOAL!", no_pt: "A bola escapou.", no_en: "The ball got away." },
+    { pt: "Amortecer pro companheiro", en: "Cushion it to a teammate", atr: "passe", buff: "passar", res: "assist", ok_pt: "Ajeitou e GOL do time! Assistência!", ok_en: "Laid it off — GOAL! Assist!", no_pt: "Passe fraco.", no_en: "Weak pass." },
+  ] },
+  // FORÇA
+  { id: "forca1", rar: "comum", pt: "Dividida forte no meio-campo. O que faz?", en: "A strong challenge in midfield. What do you do?", opcoes: [
+    { pt: "Meter o corpo (força)", en: "Use your body (strength)", atr: "forca", res: "recuperar", ok_pt: "Você ganha no corpo e recupera a bola!", ok_en: "You win the physical battle and recover!", no_pt: "Levou a pior.", no_en: "Came off worse." },
+    { pt: "Sair jogando rápido", en: "Play it quick", atr: "passe", buff: "passar", res: "assist", ok_pt: "Tocou rápido e GOL! Assistência!", ok_en: "Quick pass — GOAL! Assist!", no_pt: "Errou o toque.", no_en: "Misplaced it." },
+  ] },
+  { id: "forca2", rar: "epico", pt: "Você segura o zagueiro nas costas. Como finaliza?", en: "You hold the defender off. How do you finish?", opcoes: [
+    { pt: "Empurrar e chutar (força)", en: "Power past and shoot (strength)", atr: "forca", res: "gol", ok_pt: "Empurrou o zagueiro e marcou! GOL!", ok_en: "Powered past and scored! GOAL!", no_pt: "O zagueiro aguentou.", no_en: "The defender held firm." },
+    { pt: "Chutar de primeira", en: "Shoot first-time", atr: "chute", buff: "chutar", res: "gol", ok_pt: "GOL! Que chute!", ok_en: "GOAL! What a strike!", no_pt: "Pra fora.", no_en: "Wide." },
+  ] },
+  // AGILIDADE
+  { id: "agil1", rar: "raro", pt: "Espaço nas costas da defesa! Você arranca...", en: "Space behind the defense! You sprint...", opcoes: [
+    { pt: "Explodir na velocidade (agilidade)", en: "Burst with pace (agility)", atr: "agilidade", res: "gol", ok_pt: "Deixou todo mundo pra trás! GOL!", ok_en: "Left everyone behind! GOAL!", no_pt: "A defesa recuperou.", no_en: "The defense recovered." },
+    { pt: "Rolar pro companheiro", en: "Square it to a teammate", atr: "passe", buff: "passar", res: "assist", ok_pt: "Rolou e GOL! Assistência!", ok_en: "Squared it — GOAL! Assist!", no_pt: "Não achou ninguém.", no_en: "No one there." },
+  ] },
+  { id: "agil2", rar: "epico", pt: "O zagueiro vem pra cima. O que faz?", en: "The defender rushes in. What do you do?", opcoes: [
+    { pt: "Mudança de direção rápida (agilidade)", en: "Quick change of direction (agility)", atr: "agilidade", res: "gol", ok_pt: "Mudou de direção e marcou! GOL!", ok_en: "Changed direction and scored! GOAL!", no_pt: "Escorregou.", no_en: "Slipped." },
+    { pt: "Proteger e segurar", en: "Shield and hold", atr: "forca", res: "recuperar", ok_pt: "Segurou firme e manteve a posse!", ok_en: "Held firm and kept possession!", no_pt: "Perdeu a bola.", no_en: "Lost the ball." },
+  ] },
+  // EQUILÍBRIO
+  { id: "equilibrio1", rar: "comum", pt: "O zagueiro te dá um encontrão. Você se equilibra e...", en: "The defender shoulders you. You steady yourself and...", opcoes: [
+    { pt: "Firmar o corpo e chutar (equilíbrio)", en: "Steady and shoot (balance)", atr: "equilibrio", res: "gol", ok_pt: "Não caiu e finalizou! GOL!", ok_en: "Stayed on your feet and scored! GOAL!", no_pt: "Desequilibrou e isolou.", no_en: "Off balance, missed." },
+    { pt: "Cair pedindo falta? Não — passar", en: "Play on and pass", atr: "passe", buff: "passar", res: "assist", ok_pt: "Seguiu firme e deu GOL! Assistência!", ok_en: "Stayed up and set up a GOAL! Assist!", no_pt: "Passe atrapalhado.", no_en: "Clumsy pass." },
+  ] },
+  { id: "equilibrio2", rar: "epico", pt: "Você quase cai, mas se recupera no último instante...", en: "You nearly fall, but recover at the last second...", opcoes: [
+    { pt: "Malabarismo e finalização (equilíbrio)", en: "Acrobatic finish (balance)", atr: "equilibrio", res: "gol", ok_pt: "Finalização acrobática — GOLAÇO!", ok_en: "Acrobatic finish — GOLAZO!", no_pt: "Não alcançou a bola.", no_en: "Couldn't reach it." },
+    { pt: "Proteger a bola no chão", en: "Protect the ball", atr: "equilibrio", res: "recuperar", ok_pt: "Se firmou e manteve a posse!", ok_en: "Steadied and kept possession!", no_pt: "Caiu e perdeu.", no_en: "Fell and lost it." },
+  ] },
+  // FÔLEGO
+  { id: "folego1", rar: "raro", pt: "Fim de jogo, todos cansados. Você ainda tem gás...", en: "Late in the game, everyone's tired. You still have energy...", opcoes: [
+    { pt: "Arrancar no sprint (fôlego)", en: "Burst in a sprint (stamina)", atr: "folego", res: "gol", ok_pt: "Correu mais que todos e marcou! GOL!", ok_en: "Outran everyone and scored! GOAL!", no_pt: "As pernas pesaram.", no_en: "Legs gave out." },
+    { pt: "Pressionar e roubar (fôlego)", en: "Press and win it back (stamina)", atr: "folego", res: "recuperar", ok_pt: "Pressão implacável, recuperou a bola!", ok_en: "Relentless press, won the ball!", no_pt: "Sem fôlego pra chegar.", no_en: "Too tired to get there." },
+  ] },
+  { id: "folego2", rar: "epico", pt: "Contra-ataque longo, corrida do campo todo...", en: "A long counter, running the whole pitch...", opcoes: [
+    { pt: "Correr até o fim e finalizar (fôlego)", en: "Run all the way and finish (stamina)", atr: "folego", res: "gol", ok_pt: "Correu 60 metros e marcou! GOLAÇO!", ok_en: "Ran 60 metres and scored! GOLAZO!", no_pt: "Chegou sem forças.", no_en: "Arrived exhausted." },
+    { pt: "Tocar pro companheiro fresco", en: "Pass to a fresher teammate", atr: "passe", buff: "passar", res: "assist", ok_pt: "Tocou e GOL do time! Assistência!", ok_en: "Passed and GOAL! Assist!", no_pt: "Passe fraco de cansaço.", no_en: "Tired, weak pass." },
+  ] },
+];
+
 
 // função pura: virou gol? (d20 + atributo >= limiar)
 function ehGol(roll, atributo) {
@@ -91,10 +132,10 @@ function jogarPartida(callbackFim) {
   for (const par of EVENTOS_M) {
     for (let i = 0; i < COPIAS_M[par[1]]; i++) sorteio.push(par[0]);
   }
-  // eventos de stat entram 2x cada
-  for (const ev of EVENTOS_STAT) {
-    sorteio.push(ev.id);
-    sorteio.push(ev.id);
+  // eventos de atributo entram conforme a raridade (comum > raro > épico)
+  const pesoRar = { comum: 3, raro: 2, epico: 1 };
+  for (const ev of EVENTOS_STAT.concat(EVENTOS_ESCOLHA)) {
+    for (let i = 0; i < pesoRar[ev.rar]; i++) sorteio.push(ev.id);
   }
   _m = {
     lance: 1, placarJ: 0, placarA: 0, gols: 0, assist: 0, roubos: 0,
@@ -118,7 +159,12 @@ function proximoLance() {
   else if (tipo === "dominar") lanceDominar();
   else if (tipo === "cruzamento") lanceCruzamento();
   else if (tipo === "penalty") lancePenalti();
-  else lanceStat(statEventPorId(tipo)); // eventos de stat (data-driven)
+  else {
+    // eventos com escolha (novos) ou eventos de stat automáticos (antigos)
+    const evEsc = escolhaEventoPorId(tipo);
+    if (evEsc) lanceEscolhaEvento(evEsc);
+    else lanceStat(statEventPorId(tipo));
+  }
 }
 
 function avancarLance() {
@@ -262,6 +308,19 @@ function resolverEscolha(i) {
     msg = en ? op.no_en : op.no_pt;
   }
   tela.innerHTML = cabecalhoLance() + `<p class="importante">${msg}</p>` + botaoProximo();
+}
+
+// --- EVENTO COM ESCOLHA por atributo (usa a lista EVENTOS_ESCOLHA) ---
+function escolhaEventoPorId(id) {
+  for (const e of EVENTOS_ESCOLHA) {
+    if (e.id === id) return e;
+  }
+  return null;
+}
+
+function lanceEscolhaEvento(ev) {
+  const en = carregar("config") === "English";
+  mostrarEscolha(en ? ev.en : ev.pt, ev.opcoes);
 }
 
 // --- DOMINAR (setup): se dominar, escolhe o que fazer (CONSEQUÊNCIA) ---

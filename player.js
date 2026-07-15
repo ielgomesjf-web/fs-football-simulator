@@ -16,12 +16,6 @@ const FISICO = [
   { id: "equilibrio", pt: "Equilíbrio", en: "Balance" },
   { id: "folego",     pt: "Fôlego",     en: "Stamina" },
 ];
-const SOCIAL = [
-  { id: "gentileza",   pt: "Gentileza",   en: "Kindness" },
-  { id: "flerte",      pt: "Flerte",      en: "Flirt" },
-  { id: "empatia",     pt: "Empatia",     en: "Empathy" },
-  { id: "mentalidade", pt: "Mentalidade", en: "Mentality" },
-];
 
 
 // Monta o HTML de um grupo de atributos (com o orçamento de pontos)
@@ -53,7 +47,6 @@ function telaCriacao() {
 
     ${grupoHTML("FUTEBOL / FOOTBALL", 20, FUTEBOL, en)}
     ${grupoHTML("FÍSICO / PHYSICAL", 15, FISICO, en)}
-    ${grupoHTML("SOCIAL", 15, SOCIAL, en)}
 
     <br>
     <button onclick="criarJogador()">${en ? "Create" : "Criar"}</button>
@@ -85,10 +78,9 @@ function criarJogador() {
 
   // Lê os atributos e soma cada grupo
   const player = { nome: nome, idade: idade, posicao: posicao };
-  let somaFut = 0, somaFis = 0, somaSoc = 0;
+  let somaFut = 0, somaFis = 0;
   for (const s of FUTEBOL) { player[s.id] = lerNumero(s.id); somaFut += player[s.id]; }
   for (const s of FISICO) { player[s.id] = lerNumero(s.id); somaFis += player[s.id]; }
-  for (const s of SOCIAL) { player[s.id] = lerNumero(s.id); somaSoc += player[s.id]; }
 
   // Valida os orçamentos (igual ao while True do Python)
   if (somaFut !== 20) {
@@ -101,12 +93,6 @@ function criarJogador() {
     erro.textContent = en
       ? `Physical must total 15 (you used ${somaFis}).`
       : `Físico tem que somar 15 (você usou ${somaFis}).`;
-    return;
-  }
-  if (somaSoc !== 15) {
-    erro.textContent = en
-      ? `Social must total 15 (you used ${somaSoc}).`
-      : `Social tem que somar 15 (você usou ${somaSoc}).`;
     return;
   }
 
