@@ -1,15 +1,26 @@
 // transfer.js — conversão do Transfer.py (mercado de transferências).
 // Também define os times MÉDIOS e GRANDES (a temporada usa pra "força").
+//
+// FORÇA DO TIME (quantos lances/chances de gol o time cria por partida):
+//   GRANDE = 12 lances  |  MÉDIO = 8 lances  |  PEQUENO = 5 lances (padrão)
+// Quem NÃO está em nenhuma lista abaixo é pequeno (5). Ex: Kolitiba, Vasco do Gomes, Leissester.
 
 const TIMES_MEDIOS = [
-  "Vasco do Gomes", "Corintianos", "São Paulino", "Gremista FC",
-  "Realito Sociedade", "Atleti Madril", "Sevilhano",
-  "Manchester Vermelho", "Newcastelo", "Astão Villa",
+  // Brasilzão
+  "São Paulino", "Gremista FC", "Santástico", "Cruzado EC", "Internético",
+  "Botarfogo", "Fortão EC", "Atleticano PR", "Bragança RB",
+  // Uma Liga
+  "Vila Real", "Sevilhano", "Betico", "Realito Sociedade", "Celta de Vigor", "Bilbau Athletic",
+  // Liga Premiada
+  "Totemham", "Newcastelo", "Astão Villa", "Brightão", "West Ram", "Everfton",
 ];
 const TIMES_GRANDES = [
-  "Flamável FC", "Fluminante", "Palmares SE",
-  "Real Madril", "Barcelonense",
-  "Manchester Azul", "Liverpudle",
+  // Brasilzão
+  "Flamável FC", "Palmares SE", "Corintianos", "Fluminante", "Atlântico MG",
+  // Uma Liga
+  "Real Madril", "Barcelonense", "Atleti Madril",
+  // Liga Premiada
+  "Manchester Azul", "Manchester Vermelho", "Liverpudle", "Chelsington", "Arsênico",
 ];
 
 // função pura: nível da proposta pelo desempenho

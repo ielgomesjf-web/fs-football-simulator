@@ -58,6 +58,17 @@ function telaContinental() {
   html += `<p class="importante">${en ? `${comp} CHAMPION` : `CAMPEÃO DA ${comp}`}: ${campeao}!</p>`;
   if (campeao === meuTime) {
     html += `<p class="importante">${en ? "YOU WON THE CONTINENTAL TITLE!" : "VOCÊ FOI CAMPEÃO CONTINENTAL!"}</p>`;
+    // registra o título — no máximo 1 por temporada (pra não "farmar" reabrindo a tela)
+    const persist = carregarLiga();
+    if (persist && !persist.contGanha) {
+      adicionarTitulo("continental");
+      persist.contGanha = true;
+      salvarLiga(persist);
+    } else if (persist && persist.contGanha) {
+      html += `<p>${en ? "(Already counted this season.)" : "(Já contou nesta temporada.)"}</p>`;
+    } else {
+      adicionarTitulo("continental"); // sem liga em andamento (caso raro)
+    }
   }
   html += `<button onclick="hub()">${en ? "Back to menu" : "Voltar ao menu"}</button>`;
   tela.innerHTML = html;

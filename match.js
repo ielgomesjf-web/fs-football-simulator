@@ -84,7 +84,7 @@ const EVENTOS_ESCOLHA = [
   // EQUILÍBRIO
   { id: "equilibrio1", rar: "comum", pt: "O zagueiro te dá um encontrão. Você se equilibra e...", en: "The defender shoulders you. You steady yourself and...", opcoes: [
     { pt: "Firmar o corpo e chutar (equilíbrio)", en: "Steady and shoot (balance)", atr: "equilibrio", res: "gol", ok_pt: "Não caiu e finalizou! GOL!", ok_en: "Stayed on your feet and scored! GOAL!", no_pt: "Desequilibrou e isolou.", no_en: "Off balance, missed." },
-    { pt: "Cair pedindo falta? Não — passar", en: "Play on and pass", atr: "passe", buff: "passar", res: "assist", ok_pt: "Seguiu firme e deu GOL! Assistência!", ok_en: "Stayed up and set up a GOAL! Assist!", no_pt: "Passe atrapalhado.", no_en: "Clumsy pass." },
+    { pt: "Cair dando um toque pro companheiro — passar", en: "Play on and pass", atr: "passe", buff: "passar", res: "assist", ok_pt: "Seguiu firme e deu GOL! Assistência!", ok_en: "Stayed up and set up a GOAL! Assist!", no_pt: "Passe atrapalhado.", no_en: "Clumsy pass." },
   ] },
   { id: "equilibrio2", rar: "epico", pt: "Você quase cai, mas se recupera no último instante...", en: "You nearly fall, but recover at the last second...", opcoes: [
     { pt: "Malabarismo e finalização (equilíbrio)", en: "Acrobatic finish (balance)", atr: "equilibrio", res: "gol", ok_pt: "Finalização acrobática — GOLAÇO!", ok_en: "Acrobatic finish — GOLAZO!", no_pt: "Não alcançou a bola.", no_en: "Couldn't reach it." },
@@ -126,8 +126,9 @@ function lerAtributosMatch() {
 
 let _m = null; // estado da partida
 
-// Começa a partida. callbackFim(placarJ, placarA) roda no fim (ou vai pro hub).
-function jogarPartida(callbackFim) {
+// Começa a partida. callbackFim(placarJ, placarA) roda no fim.
+// tipoJogo: "amistoso" (padrão, oferece treino/próxima) ou "liga" (volta pra classificação).
+function jogarPartida(callbackFim, tipoJogo) {
   const sorteio = [];
   for (const par of EVENTOS_M) {
     for (let i = 0; i < COPIAS_M[par[1]]; i++) sorteio.push(par[0]);
@@ -139,7 +140,8 @@ function jogarPartida(callbackFim) {
   }
   _m = {
     lance: 1, placarJ: 0, placarA: 0, gols: 0, assist: 0, roubos: 0,
-    at: lerAtributosMatch(), sorteio: sorteio, callbackFim: callbackFim || null, situacao: null,
+    at: lerAtributosMatch(), sorteio: sorteio, callbackFim: callbackFim || null,
+    tipoJogo: tipoJogo || "amistoso", situacao: null,
   };
   proximoLance();
 }
@@ -473,6 +475,11 @@ function investirMatchXp(id, matchXp) {
 
 function botaoFimPartida() {
   const en = carregar("config") === "English";
+  // Partida de LIGA: volta direto pra classificação (o callback aplica o resultado)
+  if (_m.tipoJogo === "liga") {
+    return `<button onclick="fimPartidaVoltar()">${en ? "See standings" : "Ver a classificação"}</button>`;
+  }
+  // Partida amistosa: oferece treinar / próxima / voltar
   return `
     <p>${en ? "Before the next match, you can train (optional):" : "Antes da próxima partida, você pode treinar (opcional):"}</p>
     <button onclick="treinarEntreJogos()">${en ? "Train" : "Treinar"}</button>

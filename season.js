@@ -75,13 +75,13 @@ function simularPartidaLiga(a, b) {
 
 function novaTabela(times) {
   const t = {};
-  for (const n of times) t[n] = { pts: 0, gp: 0, gc: 0 };
+  for (const n of times) t[n] = { pts: 0, gp: 0, gc: 0, j: 0 };
   return t;
 }
 
 function aplicarResultado(t, A, gA, B, gB) {
-  t[A].gp += gA; t[A].gc += gB;
-  t[B].gp += gB; t[B].gc += gA;
+  t[A].gp += gA; t[A].gc += gB; t[A].j += 1;
+  t[B].gp += gB; t[B].gc += gA; t[B].j += 1;
   if (gA > gB) t[A].pts += PONTOS_VITORIA;
   else if (gB > gA) t[B].pts += PONTOS_VITORIA;
   else { t[A].pts += PONTOS_EMPATE; t[B].pts += PONTOS_EMPATE; }
@@ -124,34 +124,213 @@ function simularLiga(times) {
   return ordenarTabela(tabela);
 }
 
-// Tela da temporada (simula + classificação + campeão + continental)
+// ===== LIGA PERSISTENTE (a tabela fica salva; suas partidas contam de verdade) =====
+
+function carregarLiga() { return carregarObjeto("liga"); }
+function salvarLiga(liga) { salvarObjeto("liga", liga); }
+
+// Gera os jogos de uma rodada: embaralha e forma pares
+function gerarJogosRodada(times) {
+  const bar = embaralhar(times);
+  const jogos = [];
+  for (let i = 0; i < bar.length; i += 2) jogos.push([bar[i], bar[i + 1]]);
+  return jogos;
+}
+
+// Começa uma liga nova pro time do jogador
+function novaLiga(meuTime) {
+  const liga = ligaDoTime(meuTime);
+  const state = {
+    nomeLiga: liga.nome,
+    times: liga.times.slice(),
+    meuTime: meuTime,
+    tabela: novaTabela(liga.times),
+    rodada: 1,
+    jogosRodada: gerarJogosRodada(liga.times),
+    contGanha: false, // já ganhou a continental nesta temporada? (evita farmar título)
+  };
+  salvarLiga(state);
+  return state;
+}
+
+// Acha o adversário do jogador na rodada atual
+function adversarioNaRodada(liga) {
+  for (const par of liga.jogosRodada) {
+    if (par[0] === liga.meuTime) return par[1];
+    if (par[1] === liga.meuTime) return par[0];
+  }
+  return null;
+}
+
+// Monta o HTML da classificação (posição, J, Pts, Saldo; destaca seu time)
+function classificacaoHTML(liga) {
+  const en = carregar("config") === "English";
+  const ordenados = ordenarTabela(liga.tabela);
+  let linhas = ` #  ${(en ? "Team" : "Time").padEnd(18)}  J  Pts   SG\n`;
+  let pos = 1;
+  for (const t of ordenados) {
+    const saldo = t.d.gp - t.d.gc;
+    const sg = (saldo >= 0 ? "+" : "") + saldo;
+    const marca = (t.nome === liga.meuTime) ? "  <==" : "";
+    linhas += `${String(pos).padStart(2)}  ${t.nome.padEnd(18)} ${String(t.d.j).padStart(2)} ${String(t.d.pts).padStart(3)}  ${sg.padStart(3)}${marca}\n`;
+    pos++;
+  }
+  const rodadaMostrar = Math.min(liga.rodada, RODADAS);
+  return `<h2>${liga.nomeLiga} — ${en ? "Round" : "Rodada"} ${rodadaMostrar}/${RODADAS}</h2><pre>${linhas}</pre>`;
+}
+
+// Tela da liga (o hub da temporada)
 function telaTemporada() {
   const en = carregar("config") === "English";
   const meuTime = carregar("team");
-  const liga = ligaDoTime(meuTime);
-  const ordenados = simularLiga(liga.times);
+  let liga = carregarLiga();
 
-  let linhas = "";
-  let pos = 1;
-  for (const t of ordenados) {
-    const marca = (t.nome === meuTime) ? "  <==" : "";
-    linhas += `${String(pos).padStart(2)}  ${t.nome.padEnd(18)} ${String(t.d.pts).padStart(3)}${marca}\n`;
-    pos++;
+  // Sem liga, ou o jogador trocou de time (transferência) -> começa liga nova
+  if (!liga || liga.meuTime !== meuTime) {
+    liga = novaLiga(meuTime);
+  }
+  // Temporada acabou?
+  if (liga.rodada > RODADAS) return telaFimTemporada(liga);
+
+  const adversario = adversarioNaRodada(liga);
+  tela.innerHTML = classificacaoHTML(liga) + `
+    <p>${en ? "Your age" : "Sua idade"}: ${idadeDoJogador()} ${en ? "years" : "anos"}${idadeDoJogador() >= 40 ? (en ? " (age is dropping your stats!)" : " (a idade já derruba seus atributos!)") : ""}</p>
+    <p class="importante">${en ? "Round" : "Rodada"} ${liga.rodada}: ${meuTime} vs ${adversario}</p>
+    <button onclick="jogarRodadaLiga('jogar')">${en ? "Play my match" : "Jogar minha partida"}</button>
+    <button onclick="jogarRodadaLiga('simular')">${en ? "Simulate round" : "Simular rodada"}</button>
+    <button onclick="hub()">${en ? "Back to menu" : "Voltar ao menu"}</button>
+  `;
+}
+
+// Joga/simula a rodada atual: a partida do jogador conta, os outros jogos são simulados
+function jogarRodadaLiga(modo) {
+  const liga = carregarLiga();
+  const adversario = adversarioNaRodada(liga);
+
+  function finalizar(meus, deles) {
+    // resultado do jogador
+    aplicarResultado(liga.tabela, liga.meuTime, meus, adversario, deles);
+    // os outros jogos da rodada, simulados
+    for (const par of liga.jogosRodada) {
+      if (par[0] === liga.meuTime || par[1] === liga.meuTime) continue;
+      const r = simularPartidaLiga(par[0], par[1]);
+      aplicarResultado(liga.tabela, par[0], r[0], par[1], r[1]);
+    }
+    liga.rodada++;
+    if (liga.rodada <= RODADAS) {
+      liga.jogosRodada = gerarJogosRodada(liga.times);
+    } else {
+      // temporada acabou: se você terminou em 1º, ganha o título de liga
+      const ordenados = ordenarTabela(liga.tabela);
+      if (ordenados[0].nome === liga.meuTime) adicionarTitulo("liga");
+    }
+    salvarLiga(liga);
+    telaTemporada(); // mostra a tabela atualizada (ou o fim da temporada)
   }
 
-  const campeao = ordenados[0].nome;
-  const comp = COMPETICAO_CONTINENTAL[liga.nome] || "Euro Campeões Liga";
-  const top4 = [ordenados[0].nome, ordenados[1].nome, ordenados[2].nome, ordenados[3].nome];
-  const classificou = top4.includes(meuTime);
+  if (modo === "jogar") {
+    jogarPartida(finalizar, "liga"); // "liga" = no fim mostra a classificação, não treino/próxima
+  } else {
+    const r = simularPartidaLiga(liga.meuTime, adversario);
+    finalizar(r[0], r[1]);
+  }
+}
 
-  tela.innerHTML = `
-    <h2>${en ? "FINAL STANDINGS" : "CLASSIFICAÇÃO FINAL"} — ${liga.nome}</h2>
-    <pre>${linhas}</pre>
-    <p class="importante">${en ? "CHAMPION" : "CAMPEÃO"}: ${campeao}!</p>
+// ===== IDADE E APOSENTADORIA =====
+// Cada temporada = 1 ano. 35+: pode aposentar (opcional). 45: aposentadoria obrigatória.
+
+function idadeDoJogador() {
+  const p = carregarObjeto("player") || {};
+  return parseInt(p.idade) || 18;
+}
+
+function definirIdade(nova) {
+  const p = carregarObjeto("player") || {};
+  p.idade = nova;
+  salvarObjeto("player", p);
+}
+
+// Fim da temporada: campeão + classificados + idade/aposentadoria
+function telaFimTemporada(liga) {
+  const en = carregar("config") === "English";
+  const ordenados = ordenarTabela(liga.tabela);
+  const campeao = ordenados[0].nome;
+  const comp = COMPETICAO_CONTINENTAL[liga.nomeLiga] || "Euro Campeões Liga";
+  const top4 = [ordenados[0].nome, ordenados[1].nome, ordenados[2].nome, ordenados[3].nome];
+  const classificou = top4.includes(liga.meuTime);
+  const idade = idadeDoJogador();
+
+  // Ações conforme a idade
+  let acoes;
+  if (idade >= 45) {
+    acoes = `<p class="importante">${en ? "At 45, it's time to hang up the boots." : "Aos 45 anos, é hora de pendurar as chuteiras."}</p>
+      <button onclick="telaAposentadoria(true)">${en ? "Retire" : "Aposentar"}</button>`;
+  } else if (idade >= 35) {
+    acoes = `<button onclick="novaTemporada()">${en ? "New season" : "Nova temporada"}</button>
+      <button onclick="telaAposentadoria(false)">${en ? "Retire" : "Aposentar"}</button>
+      <button onclick="hub()">${en ? "Back to menu" : "Voltar ao menu"}</button>`;
+  } else {
+    acoes = `<button onclick="novaTemporada()">${en ? "New season" : "Nova temporada"}</button>
+      <button onclick="hub()">${en ? "Back to menu" : "Voltar ao menu"}</button>`;
+  }
+
+  tela.innerHTML = classificacaoHTML(liga) + `
+    <p>${en ? "Your age" : "Sua idade"}: ${idade} ${en ? "years" : "anos"}</p>
+    <p class="importante">${en ? "SEASON OVER! CHAMPION" : "FIM DA TEMPORADA! CAMPEÃO"}: ${campeao}!</p>
     <p>${en ? "Qualified for" : "Classificados pra"} ${comp}: ${top4.join(", ")}</p>
     <p class="${classificou ? "importante" : ""}">${classificou
       ? (en ? "Your team qualified!" : "Seu time se classificou!")
       : (en ? "Your team didn't qualify this time." : "Seu time não se classificou dessa vez.")}</p>
-    <button onclick="hub()">${en ? "Back to menu" : "Voltar ao menu"}</button>
+    ${acoes}
   `;
+}
+
+// Começa uma temporada nova: passa 1 ano (e, depois dos 39, os atributos caem)
+function novaTemporada() {
+  definirIdade(idadeDoJogador() + 1);
+  if (idadeDoJogador() >= 40) declinarAtributos();
+  novaLiga(carregar("team"));
+  telaTemporada();
+}
+
+// Depois dos 39: perde 1 de cada atributo por ano (mínimo 0)
+function declinarAtributos() {
+  const p = carregarObjeto("player");
+  if (!p) return;
+  for (const a of todosAtributos()) {
+    const atual = parseInt(p[a.id]) || 0;
+    p[a.id] = Math.max(0, atual - 1);
+  }
+  salvarObjeto("player", p);
+}
+
+// Aposentadoria: resumo da carreira + começar carreira nova
+function telaAposentadoria(forcada) {
+  const en = carregar("config") === "English";
+  const p = carregarObjeto("player") || {};
+  const s = carregarStats();
+  const motivo = forcada
+    ? (en ? "The age caught up — a forced, but glorious, retirement." : "A idade chegou — aposentadoria forçada, mas gloriosa.")
+    : (en ? "You chose the perfect moment to leave." : "Você escolheu a hora certa de sair.");
+  tela.innerHTML = `
+    <h2>${en ? "RETIREMENT" : "APOSENTADORIA"}</h2>
+    <p>${motivo}</p>
+    <p class="importante">${p.nome} ${en ? "retires at" : "se aposenta aos"} ${idadeDoJogador()} ${en ? "years old." : "anos."}</p>
+    <p>${en ? "Career totals:" : "Números da carreira:"}</p>
+    <pre>${en ? "Goals" : "Gols"}:    ${s.Gols}
+${en ? "Assists" : "Assist."}:  ${s.Assistencias}
+${en ? "Defenses" : "Defesas"}: ${s.Defesas}
+${en ? "Matches" : "Partidas"}: ${s.Partidas}</pre>
+    <p>${en ? "Trophy cabinet:" : "Sala de troféus:"} 🏆</p>
+    <pre>${textoTitulos(en)}</pre>
+    <p class="importante">${en ? "What a career! A legend hangs up the boots." : "Que carreira! Uma lenda pendura as chuteiras."}</p>
+    <button onclick="novaCarreira()">${en ? "New career" : "Nova carreira"}</button>
+  `;
+}
+
+// Nova carreira: apaga o jogador atual e cria um novo (mantém o idioma)
+function novaCarreira() {
+  const chaves = ["player", "team", "money", "career", "skills", "xp", "liga", "titulos"];
+  for (const k of chaves) apagar(k);
+  telaCriacao();
 }

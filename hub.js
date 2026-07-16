@@ -5,6 +5,7 @@ function hub() {
   const en = carregar("config") === "English";
   tela.innerHTML = `
     <h2>MENU</h2>
+    <p><button onclick="telaPersonagem()">${en ? "My character" : "Meu personagem"}</button></p>
     <p><button onclick="jogarPartida(hub)">${en ? "Play a match" : "Jogar partida"}</button></p>
     <p><button onclick="telaTreino()">${en ? "Train" : "Treinar"}</button></p>
     <p><button onclick="lojaSkills()">${en ? "Skills shop" : "Loja de skills"}</button></p>

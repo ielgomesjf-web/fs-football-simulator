@@ -25,6 +25,30 @@ function adicionar(stats, campo, quantidade = 1) {
   return stats;
 }
 
+// ===== TÍTULOS (troféus da carreira) =====
+// Guarda quantos títulos de liga e continentais o jogador já ganhou.
+function carregarTitulos() {
+  return carregarObjeto("titulos") || { liga: 0, continental: 0 };
+}
+
+function adicionarTitulo(tipo) { // tipo: "liga" ou "continental"
+  const t = carregarTitulos();
+  t[tipo] = (t[tipo] || 0) + 1;
+  salvarObjeto("titulos", t);
+}
+
+// Texto dos troféus (reusado na Carreira e na aposentadoria)
+function textoTitulos(en) {
+  const t = carregarTitulos();
+  const total = (t.liga || 0) + (t.continental || 0);
+  if (total === 0) {
+    return en ? "No titles yet — go win one!" : "Nenhum título ainda — vá conquistar um!";
+  }
+  return en
+    ? `League titles:      ${t.liga}\nContinental titles: ${t.continental}`
+    : `Títulos de liga:        ${t.liga}\nTítulos continentais:   ${t.continental}`;
+}
+
 // Mostra a tela da carreira (bilíngue)
 function mostrarStats() {
   const en = carregar("config") === "English";
@@ -35,6 +59,8 @@ function mostrarStats() {
     <p>${en ? "Assists" : "Assistências"}: ${s.Assistencias}</p>
     <p>${en ? "Defenses" : "Defesas"}: ${s.Defesas}</p>
     <p>${en ? "Matches" : "Partidas"}: ${s.Partidas}</p>
+    <h3>🏆 ${en ? "Trophies" : "Troféus"}</h3>
+    <pre>${textoTitulos(en)}</pre>
     <button onclick="hub()">${en ? "Back to menu" : "Voltar ao menu"}</button>
   `;
 }
