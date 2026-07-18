@@ -193,6 +193,18 @@ function telaTemporada() {
   if (liga.rodada > RODADAS) return telaFimTemporada(liga);
 
   const adversario = adversarioNaRodada(liga);
+
+  // Suspenso por cartão vermelho: não joga esta rodada, só vê o resultado
+  if (carregar("suspenso") === "1") {
+    tela.innerHTML = classificacaoHTML(liga) + `
+      <p class="importante">🟥 ${en ? "You are SUSPENDED (red card). You miss this round." : "Você está SUSPENSO (cartão vermelho). Fica de fora desta rodada."}</p>
+      <p>${en ? "Round" : "Rodada"} ${liga.rodada}: ${meuTime} vs ${adversario}</p>
+      <button onclick="cumprirSuspensao()">${en ? "See the round result" : "Ver o resultado da rodada"}</button>
+      <button onclick="hub()">${en ? "Back to menu" : "Voltar ao menu"}</button>
+    `;
+    return;
+  }
+
   tela.innerHTML = classificacaoHTML(liga) + `
     <p>${en ? "Your age" : "Sua idade"}: ${idadeDoJogador()} ${en ? "years" : "anos"}${idadeDoJogador() >= 40 ? (en ? " (age is dropping your stats!)" : " (a idade já derruba seus atributos!)") : ""}</p>
     <p class="importante">${en ? "Round" : "Rodada"} ${liga.rodada}: ${meuTime} vs ${adversario}</p>
@@ -200,6 +212,12 @@ function telaTemporada() {
     <button onclick="jogarRodadaLiga('simular')">${en ? "Simulate round" : "Simular rodada"}</button>
     <button onclick="hub()">${en ? "Back to menu" : "Voltar ao menu"}</button>
   `;
+}
+
+// Cumpre a suspensão: apaga o flag e simula a rodada (você só vê o resultado)
+function cumprirSuspensao() {
+  apagar("suspenso");
+  jogarRodadaLiga("simular");
 }
 
 // Joga/simula a rodada atual: a partida do jogador conta, os outros jogos são simulados
@@ -330,7 +348,7 @@ ${en ? "Matches" : "Partidas"}: ${s.Partidas}</pre>
 
 // Nova carreira: apaga o jogador atual e cria um novo (mantém o idioma)
 function novaCarreira() {
-  const chaves = ["player", "team", "money", "career", "skills", "xp", "liga", "titulos"];
+  const chaves = ["player", "team", "money", "career", "skills", "xp", "liga", "titulos", "suspenso"];
   for (const k of chaves) apagar(k);
   telaCriacao();
 }

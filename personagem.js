@@ -1,36 +1,5 @@
 // personagem.js — tela "Meu personagem": rosto ASCII + ficha (atributos, nível, XP).
 
-// Rosto ASCII (String.raw pra manter os \ do desenho como estão)
-const ROSTO_ASCII = String.raw`
-              ___________
-          ,##%%%%%%%%%%%##,
-        ,##%%###########%%##,
-       ,#%#################%#,
-      ,#%###################%#,
-     ,#%#####################%#,
-     :#%##'''''''''''''''''##%#:
-     ##%'                 '%##
-    :#'                     '#:
-    #'    .------.   .------.  '#
-    #    /  ___   \ /  ___   \  #
-    #   |  ( o )  | |  ( o )  | #
-    #    \  '''  /   \  '''  /  #
-    #     '-----'     '-----'   #
-    #                           #
-    #              /\           #
-    #             /  \          #
-    #             |  |          #
-    #             \__/          #
-    #                           #
-    #,      .-----------.      ,#
-    '#     (  \_______/  )     #'
-     '#,                     ,#'
-       '#,                 ,#'
-         '#%,           ,%#'
-            '%%#,,,,,#%%'
-               '%%%%%%'
-`;
-
 // Mostra a tela do personagem
 function telaPersonagem() {
   const en = carregar("config") === "English";
@@ -58,7 +27,6 @@ function telaPersonagem() {
 
   tela.innerHTML = `
     <h2>${en ? "MY CHARACTER" : "MEU PERSONAGEM"}</h2>
-    <pre>${ROSTO_ASCII}</pre>
     <p class="importante">${p.nome} — ${p.idade} ${en ? "y/o" : "anos"} — ${p.posicao}</p>
     <p>${en ? "Money" : "Dinheiro"}: ${formatar(carregarDinheiro())}</p>
     <pre>${ficha}</pre>

@@ -8,6 +8,11 @@ const CATALOGO = [
   { id: "killerpass", pt: "Passe Mortal",        en: "Killer Pass",    cat: "passar",  custo: 600000, buff: 3 },
   { id: "croqueta",   pt: "La Croqueta",         en: "La Croqueta",    cat: "driblar", custo: 700000, buff: 3 },
   { id: "elastico",   pt: "Elástico",            en: "Elastico",       cat: "driblar", custo: 400000, buff: 2 },
+  // DEFENSIVAS (uma por status de defesa)
+  { id: "carrinho",    pt: "Carrinho",    en: "Slide Tackle", cat: "desarme",     custo: 400000, buff: 3 },
+  { id: "antecipacao", pt: "Antecipação", en: "Anticipation", cat: "interceptar", custo: 400000, buff: 3 },
+  { id: "muralha",     pt: "Muralha",     en: "Wall",         cat: "cabeceio",    custo: 300000, buff: 2 },
+  { id: "impulsao",    pt: "Impulsão",    en: "Leap",         cat: "salto",       custo: 300000, buff: 2 },
 ];
 
 // rótulo da ação na tela (PT, EN)
@@ -15,6 +20,10 @@ const CAT_LABEL = {
   chutar: ["Chute", "Shot"],
   passar: ["Passe", "Pass"],
   driblar: ["Drible", "Dribble"],
+  desarme: ["Desarme", "Tackle"],
+  interceptar: ["Interceptação", "Interception"],
+  cabeceio: ["Cabeceio", "Heading"],
+  salto: ["Salto", "Jumping"],
 };
 
 function carregarSkills() {

@@ -1,7 +1,7 @@
 // player.js — conversão do Player_creation.py (criação do jogador).
 // No terminal era pergunta por pergunta; na web é um formulário só, com um botão que valida tudo.
 
-const POSICOES = ["CF", "CAM", "CDM", "CB", "LW", "RW"];
+const POSICOES = ["CF", "LW", "RW", "CAM", "MC", "CDM", "Lateral", "CB"];
 
 // Os atributos de cada grupo. id = etiqueta interna FIXA; pt/en = rótulo na tela.
 const FUTEBOL = [
@@ -15,6 +15,12 @@ const FISICO = [
   { id: "agilidade",  pt: "Agilidade",  en: "Agility" },
   { id: "equilibrio", pt: "Equilíbrio", en: "Balance" },
   { id: "folego",     pt: "Fôlego",     en: "Stamina" },
+];
+const DEFESA = [
+  { id: "salto",         pt: "Salto",         en: "Jumping" },
+  { id: "cabeceio",      pt: "Cabeceio",      en: "Heading" },
+  { id: "desarme",       pt: "Desarme",       en: "Tackling" },
+  { id: "interceptacao", pt: "Interceptação", en: "Interception" },
 ];
 
 
@@ -47,6 +53,7 @@ function telaCriacao() {
 
     ${grupoHTML("FUTEBOL / FOOTBALL", 20, FUTEBOL, en)}
     ${grupoHTML("FÍSICO / PHYSICAL", 15, FISICO, en)}
+    ${grupoHTML("DEFESA / DEFENSE", 15, DEFESA, en)}
 
     <br>
     <button onclick="criarJogador()">${en ? "Create" : "Criar"}</button>
@@ -78,9 +85,10 @@ function criarJogador() {
 
   // Lê os atributos e soma cada grupo
   const player = { nome: nome, idade: idade, posicao: posicao };
-  let somaFut = 0, somaFis = 0;
+  let somaFut = 0, somaFis = 0, somaDef = 0;
   for (const s of FUTEBOL) { player[s.id] = lerNumero(s.id); somaFut += player[s.id]; }
   for (const s of FISICO) { player[s.id] = lerNumero(s.id); somaFis += player[s.id]; }
+  for (const s of DEFESA) { player[s.id] = lerNumero(s.id); somaDef += player[s.id]; }
 
   // Valida os orçamentos (igual ao while True do Python)
   if (somaFut !== 20) {
@@ -93,6 +101,12 @@ function criarJogador() {
     erro.textContent = en
       ? `Physical must total 15 (you used ${somaFis}).`
       : `Físico tem que somar 15 (você usou ${somaFis}).`;
+    return;
+  }
+  if (somaDef !== 15) {
+    erro.textContent = en
+      ? `Defense must total 15 (you used ${somaDef}).`
+      : `Defesa tem que somar 15 (você usou ${somaDef}).`;
     return;
   }
 
