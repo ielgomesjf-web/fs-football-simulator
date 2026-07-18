@@ -1,7 +1,7 @@
 // player.js — conversão do Player_creation.py (criação do jogador).
 // No terminal era pergunta por pergunta; na web é um formulário só, com um botão que valida tudo.
 
-const POSICOES = ["CF", "LW", "RW", "CAM", "MC", "CDM", "Lateral", "CB"];
+const POSICOES = ["CF", "LW", "RW", "CAM", "MC", "CDM", "Lateral", "CB", "Goleiro"];
 
 // Os atributos de cada grupo. id = etiqueta interna FIXA; pt/en = rótulo na tela.
 const FUTEBOL = [
@@ -21,6 +21,12 @@ const DEFESA = [
   { id: "cabeceio",      pt: "Cabeceio",      en: "Heading" },
   { id: "desarme",       pt: "Desarme",       en: "Tackling" },
   { id: "interceptacao", pt: "Interceptação", en: "Interception" },
+];
+const GOLEIRO = [
+  { id: "reflexos",       pt: "Reflexos",       en: "Reflexes" },
+  { id: "posicionamento", pt: "Posicionamento", en: "Positioning" },
+  { id: "saida",          pt: "Saída",          en: "Coming out" },
+  { id: "reposicao",      pt: "Reposição",      en: "Distribution" },
 ];
 
 
@@ -49,16 +55,29 @@ function telaCriacao() {
     <h2>${en ? "Create your player" : "Crie seu jogador"}</h2>
     <label>${en ? "Name" : "Nome"}: <input type="text" id="nome"></label><br>
     <label>${en ? "Age" : "Idade"}: <input type="number" id="idade" value="18"></label><br>
-    <label>${en ? "Position" : "Posição"}: <select id="posicao">${opcoes}</select></label>
-
-    ${grupoHTML("FUTEBOL / FOOTBALL", 20, FUTEBOL, en)}
-    ${grupoHTML("FÍSICO / PHYSICAL", 15, FISICO, en)}
-    ${grupoHTML("DEFESA / DEFENSE", 15, DEFESA, en)}
-
+    <label>${en ? "Position" : "Posição"}: <select id="posicao" onchange="atualizarCamposPosicao()">${opcoes}</select></label>
+    <div id="camposAtributos"></div>
     <br>
     <button onclick="criarJogador()">${en ? "Create" : "Criar"}</button>
     <p id="erro" style="color:#f85149;"></p>
   `;
+  atualizarCamposPosicao();
+}
+
+// Mostra os campos de atributo conforme a posição:
+// Goleiro escolhe SÓ os status de goleiro (20 pts); os de linha escolhem Futebol/Físico/Defesa.
+function atualizarCamposPosicao() {
+  const en = carregar("config") === "English";
+  const pos = document.getElementById("posicao").value;
+  const alvo = document.getElementById("camposAtributos");
+  if (pos === "Goleiro") {
+    alvo.innerHTML = grupoHTML("GOLEIRO / GOALKEEPER", 20, GOLEIRO, en);
+  } else {
+    alvo.innerHTML =
+      grupoHTML("FUTEBOL / FOOTBALL", 20, FUTEBOL, en) +
+      grupoHTML("FÍSICO / PHYSICAL", 15, FISICO, en) +
+      grupoHTML("DEFESA / DEFENSE", 15, DEFESA, en);
+  }
 }
 
 
@@ -85,29 +104,41 @@ function criarJogador() {
 
   // Lê os atributos e soma cada grupo
   const player = { nome: nome, idade: idade, posicao: posicao };
-  let somaFut = 0, somaFis = 0, somaDef = 0;
-  for (const s of FUTEBOL) { player[s.id] = lerNumero(s.id); somaFut += player[s.id]; }
-  for (const s of FISICO) { player[s.id] = lerNumero(s.id); somaFis += player[s.id]; }
-  for (const s of DEFESA) { player[s.id] = lerNumero(s.id); somaDef += player[s.id]; }
 
-  // Valida os orçamentos (igual ao while True do Python)
-  if (somaFut !== 20) {
-    erro.textContent = en
-      ? `Football must total 20 (you used ${somaFut}).`
-      : `Futebol tem que somar 20 (você usou ${somaFut}).`;
-    return;
-  }
-  if (somaFis !== 15) {
-    erro.textContent = en
-      ? `Physical must total 15 (you used ${somaFis}).`
-      : `Físico tem que somar 15 (você usou ${somaFis}).`;
-    return;
-  }
-  if (somaDef !== 15) {
-    erro.textContent = en
-      ? `Defense must total 15 (you used ${somaDef}).`
-      : `Defesa tem que somar 15 (você usou ${somaDef}).`;
-    return;
+  if (posicao === "Goleiro") {
+    // Goleiro: só os status de goleiro (somam 20)
+    let somaGol = 0;
+    for (const s of GOLEIRO) { player[s.id] = lerNumero(s.id); somaGol += player[s.id]; }
+    if (somaGol !== 20) {
+      erro.textContent = en
+        ? `Goalkeeper must total 20 (you used ${somaGol}).`
+        : `Goleiro tem que somar 20 (você usou ${somaGol}).`;
+      return;
+    }
+  } else {
+    // Jogador de linha: Futebol (20) + Físico (15) + Defesa (15)
+    let somaFut = 0, somaFis = 0, somaDef = 0;
+    for (const s of FUTEBOL) { player[s.id] = lerNumero(s.id); somaFut += player[s.id]; }
+    for (const s of FISICO) { player[s.id] = lerNumero(s.id); somaFis += player[s.id]; }
+    for (const s of DEFESA) { player[s.id] = lerNumero(s.id); somaDef += player[s.id]; }
+    if (somaFut !== 20) {
+      erro.textContent = en
+        ? `Football must total 20 (you used ${somaFut}).`
+        : `Futebol tem que somar 20 (você usou ${somaFut}).`;
+      return;
+    }
+    if (somaFis !== 15) {
+      erro.textContent = en
+        ? `Physical must total 15 (you used ${somaFis}).`
+        : `Físico tem que somar 15 (você usou ${somaFis}).`;
+      return;
+    }
+    if (somaDef !== 15) {
+      erro.textContent = en
+        ? `Defense must total 15 (you used ${somaDef}).`
+        : `Defesa tem que somar 15 (você usou ${somaDef}).`;
+      return;
+    }
   }
 
   // Tudo certo: salva o jogador (equivale ao Stats.txt)

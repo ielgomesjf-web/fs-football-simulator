@@ -8,6 +8,7 @@ const N_LANCES = 8;
 const BUFF_DICA = 5;
 const PREMIO_GOL = 10000;
 const PREMIO_VITORIA = 50000;
+const PREMIO_CLEAN_SHEET = 30000; // goleiro: bônus por jogo sem sofrer gol
 
 // eventos e raridades (mais cópias = mais provável)
 const EVENTOS_M = [
@@ -137,6 +138,40 @@ const EVENTOS_ESCOLHA = [
   ] },
 ];
 
+// ===== EVENTOS DE GOLEIRO (só entram quando a posição é Goleiro) =====
+// Reusam o lanceStat: res "recuperar" = defesa (conta como Defesa); falhaGol = leva gol se falhar.
+// res "assist" = reposição que arma o gol do time (goleiro dá assistência!).
+const EVENTOS_GK = [
+  // REFLEXOS
+  { id: "gk_reflexo1", atr: "reflexos", buff: "reflexos", res: "recuperar", falhaGol: true, rar: "comum",
+    pt: "O atacante finaliza forte no seu canto!", en: "The striker fires a hard shot at your corner!",
+    ok_pt: "DEFENDAÇA! Você voou e espalmou!", ok_en: "GREAT SAVE! You flew and pushed it away!", no_pt: "Foi rápido demais — GOL do adversário.", no_en: "Too fast — GOAL against." },
+  { id: "gk_reflexo2", atr: "reflexos", buff: "reflexos", res: "recuperar", falhaGol: true, rar: "raro",
+    pt: "Chute à queima-roupa, quase em cima de você!", en: "Point-blank shot, right on top of you!",
+    ok_pt: "REFLEXO FELINO! Defendeu o impossível!", ok_en: "CAT-LIKE REFLEX! Saved the impossible!", no_pt: "Não deu tempo de reagir — GOL.", no_en: "No time to react — GOAL." },
+  // POSICIONAMENTO
+  { id: "gk_pos1", atr: "posicionamento", buff: "posicionamento", res: "recuperar", falhaGol: true, rar: "comum",
+    pt: "Chute no gol — você estava bem posicionado.", en: "Shot on goal — you were well positioned.",
+    ok_pt: "Defesa tranquila, estava no lugar certo!", ok_en: "Easy save, right where you needed to be!", no_pt: "Mal posicionado — GOL.", no_en: "Out of position — GOAL." },
+  { id: "gk_pos2", atr: "posicionamento", buff: "posicionamento", res: "recuperar", falhaGol: true, rar: "raro",
+    pt: "Chutão de longe, com um desvio no meio!", en: "Long-range shot with a deflection!",
+    ok_pt: "Leu o desvio e encaixou! Grande defesa!", ok_en: "Read the deflection and held it! Great save!", no_pt: "O desvio te enganou — GOL.", no_en: "The deflection beat you — GOAL." },
+  // SAÍDA
+  { id: "gk_saida1", atr: "saida", buff: "saida", res: "recuperar", falhaGol: true, rar: "comum",
+    pt: "Cruzamento perigoso na sua área!", en: "Dangerous cross into your box!",
+    ok_pt: "Saiu bem e agarrou no alto! Domínio da área.", ok_en: "Came out and claimed it! Commands the box.", no_pt: "Ficou no meio do caminho — GOL.", no_en: "Caught in no man's land — GOAL." },
+  { id: "gk_saida2", atr: "saida", buff: "saida", res: "recuperar", falhaGol: true, rar: "raro",
+    pt: "Atacante sai na cara do gol — 1 contra 1!", en: "Striker through on goal — one-on-one!",
+    ok_pt: "Fechou o ângulo e DEFENDEU o 1v1!", ok_en: "Closed the angle and SAVED the one-on-one!", no_pt: "Ele te venceu no 1v1 — GOL.", no_en: "He beat you one-on-one — GOAL." },
+  // REPOSIÇÃO (arma o ataque -> assistência)
+  { id: "gk_rep1", atr: "reposicao", buff: "reposicao", res: "assist", rar: "comum",
+    pt: "Você agarra e lança rápido no contra-ataque!", en: "You catch it and launch a quick counter!",
+    ok_pt: "Lançamento perfeito — GOL do time! Assistência sua!", ok_en: "Perfect throw — team GOAL! Your assist!", no_pt: "O lançamento saiu errado.", no_en: "The throw went astray." },
+  { id: "gk_rep2", atr: "reposicao", buff: "reposicao", res: "assist", rar: "raro",
+    pt: "Saída de bola jogando pelo chão, com categoria.", en: "You play it out from the back with class.",
+    ok_pt: "Armou a jogada — saiu o GOL! Assistência!", ok_en: "Started the move — GOAL! Assist!", no_pt: "O passe foi interceptado.", no_en: "The pass was intercepted." },
+];
+
 
 // função pura: virou gol? (d20 + atributo >= limiar)
 function ehGol(roll, atributo) {
@@ -164,7 +199,11 @@ let _m = null; // estado da partida
 
 // Quantos lances a SUA partida tem = força do seu time (5 pequeno / 8 médio / 12 grande)
 function lancesDaPartida() {
-  return (typeof chancesDoTime === "function") ? chancesDoTime(carregar("team")) : N_LANCES;
+  const forca = (typeof chancesDoTime === "function") ? chancesDoTime(carregar("team")) : N_LANCES;
+  const pos = (carregarObjeto("player") || {}).posicao || "";
+  // Goleiro: time forte concede MENOS -> goleiro trabalha menos (inverte: 12->5, 8->9, 5->12)
+  if (pos === "Goleiro") return 17 - forca;
+  return forca;
 }
 
 // Em que lance o cansaço começa (quanto maior a partida, mais tarde ele bate)
@@ -177,7 +216,7 @@ function inicioCansaco(nLances) {
 // Cansaço no lance atual, JÁ descontando o Fôlego. Retorna >= 0 (pra SUBTRAIR do lance).
 // Acumula -1 por lance a partir do início; cada ponto de Fôlego cancela 1 de cansaço.
 function cansacoAtual() {
-  if (!_m) return 0;
+  if (!_m || _m.gk) return 0; // goleiro não corre -> não cansa
   const inicio = inicioCansaco(_m.nLances);
   if (_m.lance < inicio) return 0;
   const bruto = _m.lance - inicio + 1;          // -1, -2, -3... até o fim da partida
@@ -223,16 +262,24 @@ function fatorPosicao(tipo, posicao) {
 // tipoJogo: "amistoso" (padrão, oferece treino/próxima) ou "liga" (volta pra classificação).
 function jogarPartida(callbackFim, tipoJogo) {
   const pos = (carregarObjeto("player") || {}).posicao || "";
-  const sorteio = [];
-  for (const par of EVENTOS_M) {
-    const copias = Math.round(COPIAS_M[par[1]] * fatorPosicao(TIPO_LANCE[par[0]] || "neu", pos));
-    for (let i = 0; i < copias; i++) sorteio.push(par[0]);
-  }
-  // eventos de atributo entram conforme a raridade (comum > raro > épico) e a posição
   const pesoRar = { comum: 3, raro: 2, epico: 1 };
-  for (const ev of EVENTOS_STAT.concat(EVENTOS_ESCOLHA)) {
-    const copias = Math.round(pesoRar[ev.rar] * fatorPosicao(ev.tipo || "of", pos));
-    for (let i = 0; i < copias; i++) sorteio.push(ev.id);
+  const sorteio = [];
+  if (pos === "Goleiro") {
+    // Partida de goleiro: SÓ eventos de goleiro (defesas, saídas, reposição)
+    for (const ev of EVENTOS_GK) {
+      for (let i = 0; i < pesoRar[ev.rar]; i++) sorteio.push(ev.id);
+    }
+    sorteio.push("gk_penalti"); // pênalti contra (raro: 1 cópia)
+  } else {
+    for (const par of EVENTOS_M) {
+      const copias = Math.round(COPIAS_M[par[1]] * fatorPosicao(TIPO_LANCE[par[0]] || "neu", pos));
+      for (let i = 0; i < copias; i++) sorteio.push(par[0]);
+    }
+    // eventos de atributo entram conforme a raridade (comum > raro > épico) e a posição
+    for (const ev of EVENTOS_STAT.concat(EVENTOS_ESCOLHA)) {
+      const copias = Math.round(pesoRar[ev.rar] * fatorPosicao(ev.tipo || "of", pos));
+      for (let i = 0; i < copias; i++) sorteio.push(ev.id);
+    }
   }
   _m = {
     lance: 1, placarJ: 0, placarA: 0, gols: 0, assist: 0, roubos: 0,
@@ -240,6 +287,7 @@ function jogarPartida(callbackFim, tipoJogo) {
     tipoJogo: tipoJogo || "amistoso", situacao: null,
     nLances: lancesDaPartida(),
     amarelos: 0, vermelho: false, expulso: false,
+    gk: pos === "Goleiro",
   };
   _m.folego = _m.at.folego || 0; // Fôlego alivia o cansaço da reta final
   proximoLance();
@@ -261,6 +309,7 @@ function proximoLance() {
   else if (tipo === "dominar") lanceDominar();
   else if (tipo === "cruzamento") lanceCruzamento();
   else if (tipo === "penalty") lancePenalti();
+  else if (tipo === "gk_penalti") lancePenaltiContra();
   else {
     // eventos com escolha (novos) ou eventos de stat automáticos (antigos)
     const evEsc = escolhaEventoPorId(tipo);
@@ -389,6 +438,9 @@ function statEventPorId(id) {
   for (const e of EVENTOS_STAT) {
     if (e.id === id) return e;
   }
+  for (const e of EVENTOS_GK) { // eventos de goleiro também são "stat" (usam 1 atributo)
+    if (e.id === id) return e;
+  }
   return null;
 }
 
@@ -413,6 +465,7 @@ function lanceStat(ev) {
     else if (ev.res === "recuperar") { _m.roubos++; }
     msg = en ? ev.ok_en : ev.ok_pt;
   } else {
+    if (ev.falhaGol) _m.placarA++; // goleiro falhou na defesa -> gol do adversário
     msg = en ? ev.no_en : ev.no_pt;
     if (ev.falta && dado(10) <= 3) faltaHtml = resolverFalta(ev.falta); // errou o desarme -> ~30% de virar falta
   }
@@ -554,6 +607,54 @@ function baterPenaltiPartida() {
   });
 }
 
+// --- PÊNALTI CONTRA (goleiro): o adversário bate, VOCÊ escolhe o canto pra defender ---
+// Regra: acertar o canto = defesa provável; canto errado = só uma defesaça. Reflexos ajudam nos dois.
+function defendeuPenalti(acertouCanto, rollDefesa, reflexos) {
+  const total = rollDefesa + reflexos;
+  return acertouCanto ? (total >= 12) : (total >= 25);
+}
+
+function lancePenaltiContra() {
+  const en = carregar("config") === "English";
+  let botoes = "";
+  for (let i = 1; i <= 4; i++) botoes += `<button onclick="defenderPenalti(${i})">${i}</button>`;
+  tela.innerHTML = cabecalhoLance() + `
+    <pre>${GOL_ASCII}</pre>
+    <p class="importante">${en ? "PENALTY AGAINST! Pick the corner to DIVE:" : "PÊNALTI CONTRA! Escolha o canto pra DEFENDER:"}</p>
+    <p>1 = ${en ? "top-left" : "cima-esq"} | 2 = ${en ? "top-right" : "cima-dir"} |
+       3 = ${en ? "bottom-left" : "baixo-esq"} | 4 = ${en ? "bottom-right" : "baixo-dir"}</p>
+    <div id="cantos">${botoes}</div>
+    <div id="penaltiResultado"></div>
+  `;
+}
+
+async function defenderPenalti(canto) {
+  const en = carregar("config") === "English";
+  document.getElementById("cantos").innerHTML = ""; // tira os botões
+  const res = document.getElementById("penaltiResultado");
+
+  const cantoChute = dado(4);
+  const rollDefesa = dado(20);
+  const reflexos = _m.at.reflexos || 0;
+
+  res.innerHTML = `<p>${en ? "The opponent steps up to the spot..." : "O adversário se prepara pra bater..."}</p>`;
+  await delay(900);
+  res.innerHTML += `<p>${en ? "You dive to corner " + canto + "!" : "Você se joga no canto " + canto + "!"}</p>`;
+  await delay(900);
+  res.innerHTML += `<p>${en ? "The shot went to corner " + cantoChute + "." : "O chute foi no canto " + cantoChute + "."}</p>`;
+  await delay(900);
+
+  let msg;
+  if (defendeuPenalti(canto === cantoChute, rollDefesa, reflexos)) {
+    _m.roubos++;
+    msg = en ? "SAVED! What a penalty save!" : "DEFENDEU! Que defesa de pênalti!";
+  } else {
+    _m.placarA++;
+    msg = en ? "GOAL. The penalty beat you." : "GOL. O pênalti te venceu.";
+  }
+  res.innerHTML += `<p class="importante">${msg}</p>` + botaoProximo();
+}
+
 // --- FIM DA PARTIDA (carreira + dinheiro + Match XP) ---
 function fimPartida() {
   const en = carregar("config") === "English";
@@ -571,10 +672,13 @@ function fimPartida() {
   // dinheiro (prêmio)
   let premio = _m.gols * PREMIO_GOL;
   if (_m.placarJ > _m.placarA) premio += PREMIO_VITORIA;
+  const cleanSheet = _m.gk && _m.placarA === 0;
+  if (cleanSheet) premio += PREMIO_CLEAN_SHEET; // goleiro: jogo sem sofrer gol
   const total = adicionarDinheiro(premio);
 
   tela.innerHTML = `
     <h2>${en ? "FULL TIME" : "FIM DE JOGO"}: ${_m.placarJ} x ${_m.placarA}</h2>
+    ${cleanSheet ? `<p class="importante">${en ? "CLEAN SHEET! No goals conceded! 🧤" : "JOGO SEM SOFRER GOL! Que muralha! 🧤"}</p>` : ""}
     <p>${en ? "Prize" : "Prêmio"}: ${formatar(premio)} (${en ? "money" : "dinheiro"}: ${formatar(total)})</p>
     <div id="matchXpArea"></div>
   `;

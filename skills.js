@@ -13,6 +13,11 @@ const CATALOGO = [
   { id: "antecipacao", pt: "Antecipação", en: "Anticipation", cat: "interceptar", custo: 400000, buff: 3 },
   { id: "muralha",     pt: "Muralha",     en: "Wall",         cat: "cabeceio",    custo: 300000, buff: 2 },
   { id: "impulsao",    pt: "Impulsão",    en: "Leap",         cat: "salto",       custo: 300000, buff: 2 },
+  // GOLEIRO
+  { id: "maos",       pt: "Mãos Firmes",      en: "Firm Hands",     cat: "reflexos",       custo: 400000, buff: 3 },
+  { id: "paredao",    pt: "Paredão",          en: "Brick Wall",     cat: "posicionamento", custo: 300000, buff: 2 },
+  { id: "libero",     pt: "Líbero",           en: "Sweeper Keeper", cat: "saida",          custo: 300000, buff: 2 },
+  { id: "lancamento", pt: "Lançamento Longo", en: "Long Throw",     cat: "reposicao",      custo: 250000, buff: 2 },
 ];
 
 // rótulo da ação na tela (PT, EN)
@@ -24,6 +29,10 @@ const CAT_LABEL = {
   interceptar: ["Interceptação", "Interception"],
   cabeceio: ["Cabeceio", "Heading"],
   salto: ["Salto", "Jumping"],
+  reflexos: ["Reflexos", "Reflexes"],
+  posicionamento: ["Posicionamento", "Positioning"],
+  saida: ["Saída", "Coming out"],
+  reposicao: ["Reposição", "Distribution"],
 };
 
 function carregarSkills() {
@@ -64,7 +73,11 @@ function lojaSkills() {
   let html = `<h2>${en ? "SKILLS SHOP" : "LOJA DE SKILLS"}</h2>`;
   html += `<p>${en ? "Money" : "Dinheiro"}: ${formatar(carregarDinheiro())}</p>`;
 
+  // Goleiro só vê skills de goleiro; jogador de linha só vê as de linha
+  const ehGoleiro = ((carregarObjeto("player") || {}).posicao === "Goleiro");
+  const catsGK = ["reflexos", "posicionamento", "saida", "reposicao"];
   for (const s of CATALOGO) {
+    if (ehGoleiro !== catsGK.includes(s.cat)) continue;
     const nome = en ? s.en : s.pt;
     const acao = CAT_LABEL[s.cat][en ? 1 : 0];
     if (minhas.includes(s.id)) {

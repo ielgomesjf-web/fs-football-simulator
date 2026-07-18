@@ -22,6 +22,8 @@ function treinarAtributo(nivel, xp, ganho) {
 
 // Todos os atributos treináveis (reusa as listas do player.js)
 function todosAtributos() {
+  const pos = (carregarObjeto("player") || {}).posicao;
+  if (pos === "Goleiro") return GOLEIRO.slice(); // goleiro só treina/mostra status de goleiro
   return FUTEBOL.concat(FISICO).concat(DEFESA);
 }
 
