@@ -40,13 +40,13 @@ function adicionarTitulo(tipo) { // tipo: "liga" ou "continental"
 // Texto dos troféus (reusado na Carreira e na aposentadoria)
 function textoTitulos(en) {
   const t = carregarTitulos();
-  const total = (t.liga || 0) + (t.continental || 0);
+  const total = (t.liga || 0) + (t.continental || 0) + (t.mundial || 0);
   if (total === 0) {
     return en ? "No titles yet — go win one!" : "Nenhum título ainda — vá conquistar um!";
   }
   return en
-    ? `League titles:      ${t.liga}\nContinental titles: ${t.continental}`
-    : `Títulos de liga:        ${t.liga}\nTítulos continentais:   ${t.continental}`;
+    ? `League titles:      ${t.liga || 0}\nContinental titles: ${t.continental || 0}\nWorld Cups:         ${t.mundial || 0}`
+    : `Títulos de liga:        ${t.liga || 0}\nTítulos continentais:   ${t.continental || 0}\nCopas do Mundo:         ${t.mundial || 0}`;
 }
 
 // Mostra a tela da carreira (bilíngue)

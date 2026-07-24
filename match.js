@@ -735,9 +735,12 @@ function investirMatchXp(id, matchXp) {
 
 function botaoFimPartida() {
   const en = carregar("config") === "English";
-  // Partida de LIGA: volta direto pra classificação (o callback aplica o resultado)
-  if (_m.tipoJogo === "liga") {
-    return `<button onclick="fimPartidaVoltar()">${en ? "See standings" : "Ver a classificação"}</button>`;
+  // Partida de LIGA ou COPA: volta direto pro torneio (o callback aplica o resultado)
+  if (_m.tipoJogo === "liga" || _m.tipoJogo === "copa") {
+    const txt = (_m.tipoJogo === "copa")
+      ? (en ? "See the bracket" : "Ver o chaveamento")
+      : (en ? "See standings" : "Ver a classificação");
+    return `<button onclick="fimPartidaVoltar()">${txt}</button>`;
   }
   // Partida amistosa: oferece treinar / próxima / voltar
   return `

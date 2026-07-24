@@ -1,7 +1,7 @@
 // career.js — conversão do Career_mode.py (escolha do time no Modo Carreira).
 // No terminal: lista numerada + input. Na web: um botão por time.
 
-const TIMES_INICIAIS = ["Kolitiba", "Vila Real", "Leissester"];
+const TIMES_INICIAIS = ["Coritiba", "Villarreal", "Leicester"];
 
 // Mostra a tela de escolha do time
 function telaCarreira() {

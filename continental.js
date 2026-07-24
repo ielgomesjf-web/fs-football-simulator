@@ -26,13 +26,13 @@ function telaContinental() {
   const en = carregar("config") === "English";
   const meuTime = carregar("team");
   const liga = ligaDoTime(meuTime);
-  const comp = COMPETICAO_CONTINENTAL[liga.nome] || "Euro Campeões Liga";
+  const comp = COMPETICAO_CONTINENTAL[liga.nome] || "Champions League";
 
   let qualificados;
-  if (comp === "Libertados") {
-    qualificados = top4DaLiga("Kolitiba");
+  if (comp === "Libertadores") {
+    qualificados = top4DaLiga("Coritiba");
   } else {
-    qualificados = top4DaLiga("Leissester").concat(top4DaLiga("Vila Real"));
+    qualificados = top4DaLiga("Leicester").concat(top4DaLiga("Villarreal"));
   }
   // garante o time do jogador no torneio
   if (!qualificados.includes(meuTime)) {

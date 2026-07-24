@@ -3,30 +3,31 @@
 //
 // FORÇA DO TIME (quantos lances/chances de gol o time cria por partida):
 //   GRANDE = 12 lances  |  MÉDIO = 8 lances  |  PEQUENO = 5 lances (padrão)
-// Quem NÃO está em nenhuma lista abaixo é pequeno (5). Ex: Kolitiba, Vasco do Gomes, Leissester.
+// Quem NÃO está em nenhuma lista abaixo é pequeno (5). Ex: Coritiba, Vasco da Gama, Leicester.
 
 const TIMES_MEDIOS = [
-  // Brasilzão
-  "São Paulino", "Gremista FC", "Santástico", "Cruzado EC", "Internético",
-  "Botarfogo", "Fortão EC", "Atleticano PR", "Bragança RB",
-  // Uma Liga
-  "Vila Real", "Sevilhano", "Betico", "Realito Sociedade", "Celta de Vigor", "Bilbau Athletic",
-  // Liga Premiada
-  "Totemham", "Newcastelo", "Astão Villa", "Brightão", "West Ram", "Everfton",
+  // Brasileirão
+  "São Paulo", "Gremio", "Santos", "Cruzeiro", "Internacional",
+  "Botafogo", "Fortaleza", "Atlético Paranaense", "RB Bragantino",
+  // La Liga
+  "Villarreal", "Sevilha", "Betis", "Real Sociedad", "Celta de Vigo", "Athletic Bilbau",
+  // Premier League
+  "Totenham Spurs", "Newcastle", "Aston Villa", "Brighton", "WestRam", "Everton",
 ];
 const TIMES_GRANDES = [
-  // Brasilzão
-  "Flamável FC", "Palmares SE", "Corintianos", "Fluminante", "Atlântico MG",
-  // Uma Liga
-  "Real Madril", "Barcelonense", "Atleti Madril",
-  // Liga Premiada
-  "Manchester Azul", "Manchester Vermelho", "Liverpudle", "Chelsington", "Arsênico",
+  // Brasileirão
+  "Flamengo", "Palmeiras", "Corinthians", "Fluminense", "Atlético Mineiro",
+  // La Liga
+  "Real Madrid", "Barcelona", "Atletico de Madrid",
+  // Premier League
+  "Manchester City", "Manchester United", "Liverpool", "Chelsea", "Arsenal",
 ];
 
 // função pura: nível da proposta pelo desempenho
-function nivelProposta(gols, defesas) {
-  if (gols >= 40 || defesas >= 40) return "grande";
-  if (gols >= 20 || defesas >= 20) return "medio";
+function nivelProposta(gols, defesas, assist) {
+  const m = Math.max(gols || 0, defesas || 0, assist || 0); // gols, defesas OU assistências
+  if (m >= 40) return "grande";
+  if (m >= 20) return "medio";
   return null;
 }
 
@@ -36,7 +37,7 @@ function telaMercado() {
   const en = carregar("config") === "English";
   const meuTime = carregar("team");
   const s = carregarStats();
-  const nivel = nivelProposta(s.Gols, s.Defesas);
+  const nivel = nivelProposta(s.Gols, s.Defesas, s.Assistencias);
 
   if (nivel === null) {
     tela.innerHTML = `

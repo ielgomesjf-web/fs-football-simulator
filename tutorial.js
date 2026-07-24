@@ -9,10 +9,10 @@ function telaTutorial() {
   const intro = en
     ? `<p>Hello, player! This is the tutorial. You must choose what to do according to what happens.</p>
        <p>Let's see what happens.</p>
-       <p>Leissester VS Kolitiba - World Tournament Final!</p>`
+       <p>Leicester VS Coritiba - World Tournament Final!</p>`
     : `<p>Olá, jogador! Este é o tutorial. Você deve escolher o que fazer de acordo com os acontecimentos.</p>
        <p>Vamos ver o que acontece.</p>
-       <p>Leissester VS Kolitiba - Final do Torneio do Mundo!</p>`;
+       <p>Leicester VS Coritiba - Final do Torneio do Mundo!</p>`;
 
   let cena, botao;
   if (posicao === "CB") {

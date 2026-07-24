@@ -3,31 +3,31 @@
 // (Partidas avulsas jogáveis ficam no "Jogar partida" do menu.)
 
 const LIGAS = {
-  "Kolitiba": {
-    nome: "Brasilzão",
+  "Coritiba": {
+    nome: "Brasileirão",
     times: [
-      "Kolitiba", "Flamável FC", "Corintianos", "Palmares SE", "São Paulino",
-      "Gremista FC", "Vasco do Gomes", "Santástico", "Cruzado EC", "Atlântico MG",
-      "Botarfogo", "Fluminante", "Internético", "Baianão", "Fortão EC",
-      "Atleticano PR", "Cearense SC", "Goianão", "Cuiabano", "Bragança RB",
+      "Coritiba", "Flamengo", "Corinthians", "Palmeiras", "São Paulo",
+      "Gremio", "Vasco da Gama", "Santos", "Cruzeiro", "Atlético Mineiro",
+      "Botafogo", "Fluminense", "Internacional", "Bahia", "Fortaleza",
+      "Atlético Paranaense", "Ceará", "Goiás", "Cuiabá", "RB Bragantino",
     ],
   },
-  "Vila Real": {
-    nome: "Uma Liga",
+  "Villarreal": {
+    nome: "La Liga",
     times: [
-      "Vila Real", "Real Madril", "Barcelonense", "Atleti Madril", "Sevilhano",
-      "Betico", "Realito Sociedade", "Villa Amarela", "Getáfico", "Osasúna",
-      "Celta de Vigor", "Rayo Vallecas", "Málagão", "Espanhol FC", "Granadão",
-      "Almerião", "Cádiz FC", "Elche CF", "Levânte", "Bilbau Athletic",
+      "Villarreal", "Real Madrid", "Barcelona", "Atletico de Madrid", "Sevilha",
+      "Betis", "Real Sociedad", "Deportivo La Coruña", "Getáfe", "Osasuna",
+      "Celta de Vigo", "Rayo Vallecano", "Málago", "Espanyol", "Granada",
+      "Alavés", "Cádiz", "Elche", "Levante", "Athletic Bilbau",
     ],
   },
-  "Leissester": {
-    nome: "Liga Premiada",
+  "Leicester": {
+    nome: "Premier League",
     times: [
-      "Leissester", "Manchester Vermelho", "Manchester Azul", "Liverpudle", "Chelsington",
-      "Arsênico", "Totemham", "Newcastelo", "Astão Villa", "Everfton",
-      "Brightão", "Wolverhampon", "Cristal Palácio", "Fulhão", "Brentfort",
-      "Nottingão Florest", "Bornemoufe", "Sheffild", "Burnlei", "West Ram",
+      "Leicester", "Manchester United", "Manchester City", "Liverpool", "Chelsea",
+      "Arsenal", "Totenham Spurs", "Newcastle", "Aston Villa", "Everton",
+      "Brighton", "Wolverhampton", "Cristal Palace", "Fulham", "Brentford",
+      "Nottingham Forest", "Bornemouf", "Sheffield", "Burnley", "WestRam",
     ],
   },
 };
@@ -37,9 +37,9 @@ const PONTOS_EMPATE = 1;
 const RODADAS = 40;
 
 const COMPETICAO_CONTINENTAL = {
-  "Brasilzão": "Libertados",
-  "Uma Liga": "Euro Campeões Liga",
-  "Liga Premiada": "Euro Campeões Liga",
+  "Brasileirão": "Libertadores",
+  "La Liga": "Champions League",
+  "Premier League": "Champions League",
 };
 
 const CHANCES_INICIAL = 5;
@@ -51,7 +51,7 @@ function ligaDoTime(meuTime) {
   for (const chave in LIGAS) {
     if (LIGAS[chave].times.includes(meuTime)) return LIGAS[chave];
   }
-  return LIGAS["Kolitiba"];
+  return LIGAS["Coritiba"];
 }
 
 // Força do time = chances por partida (TIMES_MEDIOS/GRANDES vêm do transfer.js)
@@ -273,7 +273,7 @@ function telaFimTemporada(liga) {
   const en = carregar("config") === "English";
   const ordenados = ordenarTabela(liga.tabela);
   const campeao = ordenados[0].nome;
-  const comp = COMPETICAO_CONTINENTAL[liga.nomeLiga] || "Euro Campeões Liga";
+  const comp = COMPETICAO_CONTINENTAL[liga.nomeLiga] || "Champions League";
   const top4 = [ordenados[0].nome, ordenados[1].nome, ordenados[2].nome, ordenados[3].nome];
   const classificou = top4.includes(liga.meuTime);
   const idade = idadeDoJogador();
@@ -306,6 +306,7 @@ function telaFimTemporada(liga) {
 // Começa uma temporada nova: passa 1 ano (e, depois dos 39, os atributos caem)
 function novaTemporada() {
   definirIdade(idadeDoJogador() + 1);
+  salvar("temporada", temporadaAtual() + 1); // conta as temporadas (pra Copa do Mundo)
   if (idadeDoJogador() >= 40) declinarAtributos();
   novaLiga(carregar("team"));
   telaTemporada();
@@ -348,7 +349,7 @@ ${en ? "Matches" : "Partidas"}: ${s.Partidas}</pre>
 
 // Nova carreira: apaga o jogador atual e cria um novo (mantém o idioma)
 function novaCarreira() {
-  const chaves = ["player", "team", "money", "career", "skills", "xp", "liga", "titulos", "suspenso"];
+  const chaves = ["player", "team", "money", "career", "skills", "xp", "liga", "titulos", "suspenso", "temporada", "copa", "copaDraw", "campeaoAtual"];
   for (const k of chaves) apagar(k);
   telaCriacao();
 }

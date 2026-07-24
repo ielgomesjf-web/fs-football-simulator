@@ -51,11 +51,17 @@ function telaCriacao() {
     opcoes += `<option value="${p}">${p}</option>`;
   }
 
+  let opcoesNac = "";
+  for (const s of SELECOES) {
+    opcoesNac += `<option value="${s}">${s}</option>`;
+  }
+
   tela.innerHTML = `
     <h2>${en ? "Create your player" : "Crie seu jogador"}</h2>
     <label>${en ? "Name" : "Nome"}: <input type="text" id="nome"></label><br>
     <label>${en ? "Age" : "Idade"}: <input type="number" id="idade" value="18"></label><br>
-    <label>${en ? "Position" : "Posição"}: <select id="posicao" onchange="atualizarCamposPosicao()">${opcoes}</select></label>
+    <label>${en ? "Position" : "Posição"}: <select id="posicao" onchange="atualizarCamposPosicao()">${opcoes}</select></label><br>
+    <label>${en ? "Nationality" : "Nacionalidade"}: <select id="nacionalidade">${opcoesNac}</select></label>
     <div id="camposAtributos"></div>
     <br>
     <button onclick="criarJogador()">${en ? "Create" : "Criar"}</button>
@@ -96,6 +102,7 @@ function criarJogador() {
   const nome = document.getElementById("nome").value.trim();
   const idade = document.getElementById("idade").value.trim();
   const posicao = document.getElementById("posicao").value;
+  const nacionalidade = document.getElementById("nacionalidade").value;
 
   if (nome === "") {
     erro.textContent = en ? "Type a name!" : "Digite um nome!";
@@ -103,7 +110,7 @@ function criarJogador() {
   }
 
   // Lê os atributos e soma cada grupo
-  const player = { nome: nome, idade: idade, posicao: posicao };
+  const player = { nome: nome, idade: idade, posicao: posicao, nacionalidade: nacionalidade };
 
   if (posicao === "Goleiro") {
     // Goleiro: só os status de goleiro (somam 20)

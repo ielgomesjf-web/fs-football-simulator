@@ -1,7 +1,7 @@
 // save.js — conversão do Save.py (salvar/carregar com vários slots).
 // Um save = uma cópia das chaves do jogo, guardada dentro de "saves".
 
-const GAME_KEYS = ["config", "player", "team", "money", "career", "skills", "xp", "liga", "titulos", "suspenso"];
+const GAME_KEYS = ["config", "player", "team", "money", "career", "skills", "xp", "liga", "titulos", "suspenso", "temporada", "copa", "copaDraw", "campeaoAtual"];
 
 function salvarJogo(nome) {
   const saves = carregarObjeto("saves") || {};

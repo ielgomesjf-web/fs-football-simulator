@@ -77,7 +77,7 @@ function novoJogo() {
     ? "New game? Your current player will be lost if you didn't save it."
     : "Novo jogo? Seu jogador atual será perdido se você não tiver salvado.");
   if (!ok) return;
-  const chaves = ["player", "team", "money", "career", "skills", "xp", "liga", "titulos", "suspenso"];
+  const chaves = ["player", "team", "money", "career", "skills", "xp", "liga", "titulos", "suspenso", "temporada", "copa", "copaDraw", "campeaoAtual"];
   for (const k of chaves) {
     apagar(k);
   }

@@ -12,6 +12,7 @@ function hub() {
     <p><button onclick="mostrarStats()">${en ? "Career" : "Carreira"}</button></p>
     <p><button onclick="telaTemporada()">${en ? "Season (league)" : "Temporada (liga)"}</button></p>
     <p><button onclick="telaContinental()">${en ? "Continental cup" : "Copa continental"}</button></p>
+    <p><button onclick="telaSelecao()">${en ? "National team" : "Seleção"}</button></p>
     <p><button onclick="telaMercado()">${en ? "Transfer market" : "Mercado"}</button></p>
     <p><button onclick="telaSave()">${en ? "Save / Load" : "Salvar / Carregar"}</button></p>
   `;
