@@ -18,6 +18,8 @@ Abra o arquivo **`index.html`** no navegador. É só isso!
 - Liga com 20 times, temporada, torneios continentais e mercado de transferências
 - Salvar e continuar a carreira
 - Bilíngue: Português e Inglês / Bilingual: Portuguese and English
+- Copa do mundo
+- Sistema de força dos times
 
 ## 🌍 Idiomas / Languages
 
